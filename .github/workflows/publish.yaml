@@ -1,8 +1,9 @@
 name: Build and Push to GHCR
 
 on:
-  push:
-    branches: ["main"]
+  # TODO: enable automatic builds
+  # push:
+  #   branches: ["main"]
   # Allows running manually from the Actions tab
   workflow_dispatch:
 
@@ -55,7 +56,9 @@ jobs:
         with:
           context: .
           push: true
-          # Build for both standard computers (amd64) and Raspberry Pi (arm64)
-          platforms: linux/amd64,linux/arm64
+          # Build for just old 32-bit Raspberry Pi (linux/arm/v7) for now
+          # Node 24+ does not support 32-bit ARM!
+          # TODO: add linux/arm64 and linux/amd64 as necessary.
+          platforms: linux/arm/v7
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
