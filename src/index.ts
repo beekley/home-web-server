@@ -84,5 +84,4 @@ const server = http.createServer(
 // Start listening for requests
 server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}/`);
-  console.log(`Try: http://localhost:${PORT}/?name=YourName`);
 });
