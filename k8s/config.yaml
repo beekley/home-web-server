@@ -1,0 +1,3 @@
+disable:
+  # We use cloudflared to talk directly to the service.
+  - traefik

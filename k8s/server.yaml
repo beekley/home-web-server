@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home-web-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: home-web-server
+  template:
+    metadata:
+      labels:
+        app: home-web-server
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: server
+          image: ghcr.io/beekley/home-web-server:latest
+          ports:
+            - containerPort: 3000
+          # Force check that latest actually is latest, not just what's cached.
+          imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: home-web-server-service
+spec:
+  selector:
+    app: home-web-server
+  ports:
+    - port: 80 # Internal Cluster Port; What is exposed to the cluster.
+      targetPort: 3000 # Container Port; What the server listens on.
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: home-web-server-ingress
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: home-web-server-service
+                port:
+                  number: 80 # Must match the service port (above).
