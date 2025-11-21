@@ -7,7 +7,7 @@ metadata:
     app: cloudflared
 spec:
   # We can increase this to 2 for high availability once we have multiple Pis
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: cloudflared
@@ -19,6 +19,17 @@ spec:
       # The image is only built for 64 bit architectures.
       nodeSelector:
         kubernetes.io/arch: arm64
+      # Force separation across nodes.
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - cloudflared
+              topologyKey: "kubernetes.io/hostname"
       containers:
         - name: cloudflared
           image: cloudflare/cloudflared:latest
