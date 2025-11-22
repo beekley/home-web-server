@@ -1,6 +1,7 @@
 // Import only the built-in http module
 import * as http from "http";
 import * as os from "os";
+import { Monitor } from "./monitor";
 
 const PORT = 3000;
 
@@ -51,6 +52,8 @@ function buildHtml(): string {
               process.versions.node
             } server on ${os.hostname()} (${os.machine()}).</p>
             <p>Server time is: <strong>${serverTime}</strong></p>
+            <p>Mon data: ${monitor.data.length}</p>
+            ${monitor.renderSvg()}
             <section class="field-row" style="justify-content: flex-end">
               <button>OK</button>
               <button>Cancel</button>
@@ -95,3 +98,7 @@ const server = http.createServer(
 server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}/`);
 });
+
+// Start monitoring
+const monitor = new Monitor(5 /* seconds */);
+monitor.start();
