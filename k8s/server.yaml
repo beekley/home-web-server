@@ -28,7 +28,7 @@ metadata:
   name: home-web-server-service
 spec:
   selector:
-    app: home-web-server
+    app: home-web-server # Must match deployment label above.
   ports:
     - port: 80 # Internal Cluster Port; What is exposed to the cluster.
       targetPort: 3000 # Container Port; What the server listens on.
