@@ -81,6 +81,10 @@ const server = http.createServer(
         // Send the response
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(htmlResponse);
+      } else if (url.pathname === Monitor.PATH) {
+        // Send the monitoring data.
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(monitor.data));
       } else {
         // Handle 404 Not Found
         res.writeHead(404, { "Content-Type": "text/plain" });
@@ -100,5 +104,5 @@ server.listen(PORT, () => {
 });
 
 // Start monitoring
-const monitor = new Monitor(5 /* seconds */);
+const monitor = new Monitor(1 /* seconds */);
 monitor.start();

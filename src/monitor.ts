@@ -1,4 +1,5 @@
 import os from "os";
+import dns from "dns/promises";
 
 interface DataPoint {
   timestamp: string;
@@ -10,13 +11,18 @@ interface DataPoint {
 export class Monitor {
   data: DataPoint[] = [];
 
+  static PATH = "/monitorz";
+
   private interval?: ReturnType<typeof setTimeout>;
 
+  // This matches the Headless Service Name
+  private static readonly TARGET_SERVICE =
+    "home-web-server-discovery.default.svc.cluster.local";
   private INTERVAL_SECS: number;
+  private MAX_POINTS: number;
 
   // Store previous CPU times to calculate utilization over the interval
   private previousCpuTimes: { idle: number; total: number };
-  private MAX_POINTS: number;
 
   constructor(intervalSecs: number = 60, maxPoints: number = 60 * 24) {
     this.INTERVAL_SECS = intervalSecs;
@@ -59,12 +65,23 @@ export class Monitor {
     const maxVal = 1;
     const stepX = width / (this.data.length - 1);
 
+    this.getOtherNodeData();
+
     // 2. Generate Points
     // SVG Coordinates: (0,0) is top-left. We must invert Y (height - val).
     const points = this.data
       .map((pt, i) => {
         const x = i * stepX;
         const y = height - (pt.cpuUtilization / maxVal) * height;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(" ");
+
+    // TODO: replace with fetched data from other nodes
+    const points2 = this.data
+      .map((pt, i) => {
+        const x = i * stepX;
+        const y = height - (pt.ramUtilization / maxVal) * height;
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       })
       .join(" ");
@@ -90,6 +107,9 @@ export class Monitor {
         
         <!-- The Data Line -->
         <polyline points="${points}" fill="none" stroke="#0074d9" stroke-width="2" vector-effect="non-scaling-stroke" />
+
+        <!-- The Data Line -->
+        <polyline points="${points2}" fill="none" stroke="#82b7e5ff" stroke-width="1.5" vector-effect="non-scaling-stroke" />
     </svg>
     <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 4px;">
       <span>${this.formatDuration(this.INTERVAL_SECS * this.data.length)}</span>
@@ -98,6 +118,35 @@ export class Monitor {
       ).toFixed(0)}%</span>
     </div>
     `;
+  }
+
+  private async getOtherNodeData(): Promise<DataPoint[][]> {
+    let ips: string[] = [];
+    try {
+      ips = await dns.resolve4(Monitor.TARGET_SERVICE);
+    } catch (err) {
+      console.error(
+        `Could not resolve IPs for other nodes at ${Monitor.TARGET_SERVICE}:`,
+        err
+      );
+      return [];
+    }
+    console.log({ ips });
+
+    const allNodesData: DataPoint[][] = [];
+    for (const ip of ips) {
+      try {
+        const response = await fetch(
+          `http://${ip}:${process.env.PORT}${Monitor.PATH}`
+        );
+        const data = await response.json();
+        allNodesData.push(data);
+      } catch (err) {
+        console.error(`Could not fetch data from node ${ip}:`, err);
+      }
+    }
+    console.log({ allNodesData });
+    return allNodesData;
   }
 
   private formatDuration(seconds: number): string {
