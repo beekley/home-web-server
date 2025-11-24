@@ -136,9 +136,8 @@ export class Monitor {
     const allNodesData: DataPoint[][] = [];
     for (const ip of ips) {
       try {
-        const response = await fetch(
-          `http://${ip}:${process.env.PORT}${Monitor.PATH}`
-        );
+        // TODO: make port dynamic.
+        const response = await fetch(`http://${ip}:3000${Monitor.PATH}`);
         const data = await response.json();
         allNodesData.push(data);
       } catch (err) {
