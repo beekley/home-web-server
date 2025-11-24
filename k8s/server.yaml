@@ -22,6 +22,7 @@ spec:
           # Force check that latest actually is latest, not just what's cached.
           imagePullPolicy: Always
 ---
+# This Service balances load across the pods, accessible at the given IP.
 apiVersion: v1
 kind: Service
 metadata:
@@ -33,6 +34,18 @@ spec:
     - port: 80 # Internal Cluster Port; What is exposed to the cluster.
       targetPort: 3000 # Container Port; What the server listens on.
   type: ClusterIP
+---
+# This Service does not balance load so that each pod is discoverable by IP.
+apiVersion: v1
+kind: Service
+metadata:
+  name: home-web-server-discovery
+spec:
+  clusterIP: None
+  selector:
+    app: home-web-server
+  ports:
+    - port: 3000
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

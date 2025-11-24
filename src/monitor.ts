@@ -17,7 +17,7 @@ export class Monitor {
 
   // This matches the Headless Service Name
   private static readonly TARGET_SERVICE =
-    "home-web-server-service.default.svc.cluster.local";
+    "home-web-server-discovery.default.svc.cluster.local";
   private INTERVAL_SECS: number;
   private MAX_POINTS: number;
 
