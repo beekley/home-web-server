@@ -35,6 +35,7 @@ export class Monitor {
     this.interval = setInterval(() => {
       this.log();
     }, this.INTERVAL_SECS * 1000);
+    console.log(`Monitoring started and available at ${Monitor.PATH}.`);
   }
 
   stop() {
@@ -65,6 +66,7 @@ export class Monitor {
     const maxVal = 1;
     const stepX = width / (this.data.length - 1);
 
+    // TODO: Normalize this so it aligns with the data below
     this.getOtherNodeData();
 
     // 2. Generate Points
