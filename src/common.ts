@@ -16,7 +16,10 @@ export function htmlTemplate(content: string): string {
             body { zoom: 1.25; } /* Adjust this value as needed */
             main {
               display: flex;
+              align-items: center;
               justify-content: center;
+              flex-direction: column; /* Keep items stacked vertically */
+              align-items: center; /* Center items horizontally within the column */
             }
           </style>
         </head>
