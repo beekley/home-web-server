@@ -60,7 +60,7 @@ export class Monitor {
   // --- SVG Generator (Zero Dependency) ---
   renderSvg(width: number = 800, height: number = 150): string {
     if (this.data.length < 2)
-      return '<div style="text-align:center; padding: 20px; color: #666;">Collecting data...</div>';
+      return `<div style="text-align:center; padding: 20px; color: #666;">Collecting data. Please refresh in ${this.INTERVAL_SECS}s.</div>`;
 
     // 1. Config
     const maxVal = 1;
