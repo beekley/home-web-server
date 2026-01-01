@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: site-builder
+spec:
+  schedule: "0 0 * * *" # Every day at midnight
+  successfulJobsHistoryLimit: 10
+  failedJobsHistoryLimit: 10
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          nodeSelector:
+            kubernetes.io/arch: arm64
+          restartPolicy: OnFailure
+          volumes:
+            - name: shared-data
+              emptyDir: {}
+            - name: script-volume
+              configMap:
+                name: html-generator-script
+            - name: google-cloud-key
+              secret:
+                secretName: gcs-auth
+
+          # 1. GENERATE THE HTML
+          initContainers:
+            - name: generator
+              image: ghcr.io/beekley/home-web-server:latest
+              volumeMounts:
+                - name: shared-data
+                  mountPath: /output
+
+          # 2. UPLOAD TO GCS
+          containers:
+            - name: uploader
+              # GCR, but not dockerhub, has an arm64 build.
+              image: gcr.io/google.com/cloudsdktool/google-cloud-cli:alpine
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  # Authenticate
+                  gcloud auth activate-service-account --key-file=/var/secrets/google/key.json
+
+                  # Upload with caching headers (TTL 60 seconds so updates are visible quickly)
+                  gcloud storage \
+                    cp /output/index.html gs://beekley.xyz/index.html
+              volumeMounts:
+                - name: shared-data
+                  mountPath: /output
+                - name: google-cloud-key
+                  mountPath: /var/secrets/google

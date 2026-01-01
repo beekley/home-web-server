@@ -1,4 +1,3 @@
-import * as os from "os";
 import { Monitor } from "./monitor";
 import { HtmlPage, htmlTemplate } from "./common";
 
