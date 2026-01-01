@@ -26,6 +26,7 @@ async function main() {
   const monitor = new Monitor();
   await build(new Home(monitor));
   await build(new Favorites());
+  console.log("done.");
 }
 
 main();

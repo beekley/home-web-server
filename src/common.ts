@@ -44,7 +44,8 @@ export interface HtmlPage {
 export function fetchUrl(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     https
-      .get(url, (res) => {
+      // Disable connection pooling, so this batch function will return faster.
+      .get(url, { agent: false }, (res) => {
         // Handle Redirects (301, 302, 307, etc.)
         if (
           res.statusCode &&
