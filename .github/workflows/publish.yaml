@@ -2,8 +2,8 @@ name: Build and Push to GHCR
 
 on:
   # TODO: enable automatic builds
-  # push:
-  #   branches: ["main"]
+  push:
+    branches: ["main"]
   # Allows running manually from the Actions tab
   workflow_dispatch:
 
