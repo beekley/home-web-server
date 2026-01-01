@@ -44,7 +44,7 @@ spec:
 
                   # Upload with caching headers (TTL 60 seconds so updates are visible quickly)
                   gcloud storage \
-                    cp /output/index.html gs://beekley.xyz/index.html
+                    cp -r /output/* gs://beekley.xyz/
               volumeMounts:
                 - name: shared-data
                   mountPath: /output
