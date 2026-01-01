@@ -45,21 +45,22 @@ export class Home implements HtmlPage {
           </section>
         </div>
       </div>
-      <div class="window" style="margin: 32px; width: 250px">
-        <div class="title-bar">
-          <div class="title-bar-text">
-            Infrastructure
-          </div>
-        </div>
-        <div class="window-body">
-          <p>This HTML is built dynamically and served by a k3s cluster of Rasperry Pis and Pi-like devices.</p>
-          ${this.monitor.renderSvg()}
-          <br/>
-          <section class="field-row" style="justify-content: flex-end">
-            <button onclick="window.open('https://github.com/beekley/home-web-server', '_blank')">Project Github</button>
-          </section>
-        </div>
-      </div>
     `);
   }
 }
+
+// Currently unused.
+// <div class="window" style="margin: 32px; width: 250px">
+//   <div class="title-bar">
+//     <div class="title-bar-text">
+//       Infrastructure
+//     </div>
+//   </div>
+//   <div class="window-body">
+//     <p>This HTML is built dynamically and served by a k3s cluster of Rasperry Pis and Pi-like devices.</p>
+//     ${this.monitor.renderSvg()}
+//     <br/>
+//     <section class="field-row" style="justify-content: flex-end">
+//       <button onclick="window.open('https://github.com/beekley/home-web-server', '_blank')">Project Github</button>
+//     </section>
+//   </div>

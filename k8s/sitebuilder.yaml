@@ -10,8 +10,8 @@ spec:
     spec:
       template:
         spec:
-          nodeSelector:
-            kubernetes.io/arch: arm64
+          imagePullSecrets:
+            - name: ghcr-secret
           restartPolicy: OnFailure
           volumes:
             - name: shared-data
@@ -29,7 +29,7 @@ spec:
               image: ghcr.io/beekley/home-web-server:latest
               volumeMounts:
                 - name: shared-data
-                  mountPath: /output
+                  mountPath: /app/output
 
           # 2. UPLOAD TO GCS
           containers:

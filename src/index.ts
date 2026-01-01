@@ -2,25 +2,23 @@ import * as fs from "fs";
 import * as path from "path";
 import { Home } from "./home";
 import { Monitor } from "./monitor";
+import { Favorites } from "./favorites";
+import { HtmlPage } from "./common";
 
-function build() {
-  console.log("Building index.html...");
+const OUTPUT_DIR = "output";
 
-  // The Home class needs a Monitor instance.
-  // The monitor won't have any data, so the graph will show a "collecting data" message.
-  const monitor = new Monitor();
+function build(factory: HtmlPage) {
+  console.log(`Building ${factory.PATH}...`);
 
-  const home = new Home(monitor);
-  const htmlContent = home.buildHtml();
-
-  const outputDir = "output";
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
+  if (!fs.existsSync(OUTPUT_DIR)) {
+    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
-  fs.writeFileSync(path.join(outputDir, "index.html"), htmlContent);
+  fs.writeFileSync(path.join(OUTPUT_DIR, factory.PATH), factory.buildHtml());
 
-  console.log("Successfully created output/index.html");
+  console.log(`Successfully created output/${factory.PATH}`);
 }
 
-build();
+const monitor = new Monitor();
+build(new Home(monitor));
+build(new Favorites());
