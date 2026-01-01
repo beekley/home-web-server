@@ -37,7 +37,7 @@ export function htmlTemplate(content: string): string {
 
 export interface HtmlPage {
   readonly FILENAME: string;
-  buildHtml(): string;
+  buildHtml(): Promise<string>;
 }
 
 // Helper: Fetch URL content (Zero-dependency)

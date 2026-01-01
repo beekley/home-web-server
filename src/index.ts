@@ -7,7 +7,7 @@ import { HtmlPage } from "./common";
 
 const OUTPUT_DIR = "output";
 
-function build(factory: HtmlPage) {
+async function build(factory: HtmlPage) {
   console.log(`Building ${factory.FILENAME}...`);
 
   if (!fs.existsSync(OUTPUT_DIR)) {
@@ -16,12 +16,16 @@ function build(factory: HtmlPage) {
 
   fs.writeFileSync(
     path.join(OUTPUT_DIR, `${factory.FILENAME}.html`),
-    factory.buildHtml()
+    await factory.buildHtml()
   );
 
   console.log(`Successfully created output/${factory.FILENAME}.html`);
 }
 
-const monitor = new Monitor();
-build(new Home(monitor));
-build(new Favorites());
+async function main() {
+  const monitor = new Monitor();
+  await build(new Home(monitor));
+  await build(new Favorites());
+}
+
+main();

@@ -11,7 +11,7 @@ export class Home implements HtmlPage {
     console.log("Homepage factory ready.");
   }
 
-  buildHtml(): string {
+  async buildHtml(): Promise<string> {
     // Use a template literal to build the HTML dynamically
     // Uses https://jdan.github.io/98.css/.
     // TODO: replace the JS window.open with real links.
