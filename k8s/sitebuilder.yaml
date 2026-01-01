@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: site-builder
 spec:
-  schedule: "0 0 * * *" # Every day at midnight
+  schedule: "0 * * * *" # Once per hour
   successfulJobsHistoryLimit: 10
   failedJobsHistoryLimit: 10
   jobTemplate:

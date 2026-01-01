@@ -40,7 +40,7 @@ export class Home implements HtmlPage {
         <div class="window-body">
           <p>These are a few of my favorite things. A glimpse into who I am!</p>
           <section class="field-row" style="justify-content: flex-end">
-            <button onclick="window.open('/favorites', '_blank')">All-time</button>
+            <button onclick="window.open('/favorites.html', '_blank')">All-time</button>
             <button onclick="window.open('https://music.beekley.xyz/', '_blank')">Music Graph</button>
           </section>
         </div>
