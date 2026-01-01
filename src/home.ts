@@ -2,7 +2,7 @@ import { Monitor } from "./monitor";
 import { HtmlPage, htmlTemplate } from "./common";
 
 export class Home implements HtmlPage {
-  readonly PATH: string = "/";
+  readonly FILENAME: string = "index";
 
   private monitor: Monitor;
 

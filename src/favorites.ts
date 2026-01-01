@@ -12,7 +12,7 @@ interface Thing {
 }
 
 export class Favorites implements HtmlPage {
-  readonly PATH = "/favorites";
+  readonly FILENAME = "favorites";
   private readonly cacheTimeMs = 5 * 60 * 1000;
 
   private things: Thing[] = [];

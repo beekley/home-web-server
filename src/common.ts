@@ -36,7 +36,7 @@ export function htmlTemplate(content: string): string {
 }
 
 export interface HtmlPage {
-  readonly PATH: string;
+  readonly FILENAME: string;
   buildHtml(): string;
 }
 

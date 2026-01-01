@@ -8,15 +8,18 @@ import { HtmlPage } from "./common";
 const OUTPUT_DIR = "output";
 
 function build(factory: HtmlPage) {
-  console.log(`Building ${factory.PATH}...`);
+  console.log(`Building ${factory.FILENAME}...`);
 
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
-  fs.writeFileSync(path.join(OUTPUT_DIR, factory.PATH), factory.buildHtml());
+  fs.writeFileSync(
+    path.join(OUTPUT_DIR, `${factory.FILENAME}.html`),
+    factory.buildHtml()
+  );
 
-  console.log(`Successfully created output/${factory.PATH}`);
+  console.log(`Successfully created output/${factory.FILENAME}.html`);
 }
 
 const monitor = new Monitor();
