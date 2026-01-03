@@ -1,4 +1,4 @@
-name: Build and Push to GHCR
+name: Build and Push [site-builder] to GHCR
 
 on:
   # TODO: enable automatic builds
@@ -54,7 +54,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./site-builder/dockerfile
+          context: site-builder
           push: true
           # Build for just Raspberry Pi for now
           # Node 24+ does not support 32-bit ARM!
