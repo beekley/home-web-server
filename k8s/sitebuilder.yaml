@@ -26,7 +26,7 @@ spec:
           # 1. GENERATE THE HTML
           initContainers:
             - name: generator
-              image: ghcr.io/beekley/home-web-server:latest
+              image: ghcr.io/beekley/home-web-server/site-builder:latest
               volumeMounts:
                 - name: shared-data
                   mountPath: /app/output

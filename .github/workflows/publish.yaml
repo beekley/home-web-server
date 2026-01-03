@@ -2,15 +2,15 @@ name: Build and Push to GHCR
 
 on:
   # TODO: enable automatic builds
-  push:
-    branches: ["main"]
+  # push:
+  #   branches: ["main"]
   # Allows running manually from the Actions tab
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   # Uses the repo name (e.g., beekley/home-web-server)
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}/site-builder
 
 jobs:
   build-and-push:
@@ -54,11 +54,11 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./site-builder/dockerfile
           push: true
-          # Build for just old 32-bit Raspberry Pi (linux/arm/v7) for now
+          # Build for just Raspberry Pi for now
           # Node 24+ does not support 32-bit ARM!
-          # TODO: add linux/arm64 and linux/amd64 as necessary.
-          platforms: linux/arm/v7
+          # TODO: add linux/amd64 as necessary.
+          platforms: linux/arm64,linux/arm/v7
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
