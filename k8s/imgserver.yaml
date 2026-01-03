@@ -1,35 +1,41 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: home-web-server
+  name: img-server
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: home-web-server
+      app: img-server
   template:
     metadata:
       labels:
-        app: home-web-server
+        app: img-server
     spec:
       imagePullSecrets:
         - name: ghcr-secret
       containers:
         - name: server
-          image: ghcr.io/beekley/home-web-server:latest
+          image: ghcr.io/beekley/home-web-server/img-server:latest
           ports:
             - containerPort: 3000
           # Force check that latest actually is latest, not just what's cached.
           imagePullPolicy: Always
+          # Pass the node name so the server knows what device it's running on.
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
 ---
 # This Service balances load across the pods, accessible at the given IP.
 apiVersion: v1
 kind: Service
 metadata:
-  name: home-web-server-service
+  name: img-server-service
 spec:
   selector:
-    app: home-web-server # Must match deployment label above.
+    app: img-server # Must match deployment label above.
   ports:
     - port: 80 # Internal Cluster Port; What is exposed to the cluster.
       targetPort: 3000 # Container Port; What the server listens on.
@@ -39,18 +45,18 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: home-web-server-discovery
+  name: img-server-discovery
 spec:
   clusterIP: None
   selector:
-    app: home-web-server
+    app: img-server
   ports:
     - port: 3000
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: home-web-server-ingress
+  name: img-server-ingress
 spec:
   rules:
     - http:
@@ -59,6 +65,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: home-web-server-service
+                name: img-server-service
                 port:
                   number: 80 # Must match the service port (above).
