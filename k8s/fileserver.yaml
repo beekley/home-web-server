@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: file-server
+  template:
+    metadata:
+      labels:
+        app: file-server
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: file-server-storage
+              # Nginx serves from this directory in the container.
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+      volumes:
+        - name: file-server-storage
+          hostPath:
+            # Directory of files in the pi.
+            path: /var/www
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: file-server-service
+spec:
+  type: ClusterIP # Changed from LoadBalancer to work with Ingress
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: file-server
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: file-server-ingress
+  annotations:
+    # Allow both HTTP and HTTPS
+    traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+    - hosts:
+        - tn.beekley.xyz # Must match your DNS record
+      secretName: fileserver-tls-secret # Cert-manager will store the real cert here
+  rules:
+    # No "host" defined acts as a wildcard.
+    # Requests to http://<Tailscale-IP>/ or http://rpi3-3.local/ will land here.
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: file-server-service
+                port:
+                  number: 80

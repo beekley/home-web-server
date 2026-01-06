@@ -1,0 +1,19 @@
+# Requires cert manager: https://cert-manager.io/docs/installation/
+
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    email: brettbeekley@gmail.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-prod-account-key
+    solvers:
+      - dns01:
+          cloudflare:
+            email: brettbeekley+cf@gmail.com
+            apiTokenSecretRef:
+              name: cloudflare-api-token-dns-secret
+              key: api-token
