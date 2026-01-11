@@ -4,29 +4,30 @@ const MON_HOST =
   process.env.MON_HOST || "monitor.home-web-server.svc.cluster.local";
 const MON_INTERVAL = 10 * 1000; // 10 s.
 
-interface MetricPayload {
+export interface MetricPayload {
   host: string; // e.g., "rpi-1"
   service: string; // e.g., "living-room-sensor"
+  name: string; // e.g., "cpu_temp"
   timestamp: number; // Unix epoch
   type: PointType;
   point: Point;
 }
 
 type Point = Counter | Gauge | Histogram;
-type PointType = "counter" | "gauge" | "histogram";
+export type PointType = "counter" | "gauge" | "histogram";
 
 export interface Counter {
-  name: string; // e.g. "404 response"
+  // e.g. "404 response"
 }
 
 export interface Gauge {
-  metric: string; // e.g., "cpu_temp"
+  // e.g., "cpu_temp"
   value: number; // e.g., 45.2
   unit: string; // e.g., "°C"
 }
 
 export interface Histogram {
-  metric: string; // e.g., "request_latency"
+  // e.g., "request_latency"
   value: number; // e.g., 120
   unit: string; // e.g., "ms"
 }
@@ -44,12 +45,13 @@ export class Monitor {
     setInterval(async () => await this.flushBuffer(), MON_INTERVAL);
   }
 
-  public recordMetric(point: Point, type: PointType): void {
+  public recordMetric(point: Point, name: string, type: PointType): void {
     this.buffer.push({
       host: this.host,
       service: this.service,
       timestamp: Date.now(),
       type,
+      name,
       point,
     });
   }

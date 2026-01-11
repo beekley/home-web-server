@@ -1,7 +1,8 @@
 // Import only the built-in http module
 import * as http from "http";
 import os from "os";
-import { Monitor } from "./client";
+import { MetricPayload, Monitor } from "./client";
+import { storage, storeBatch } from "./storage";
 
 const PORT = 3000;
 
@@ -21,7 +22,10 @@ const server = http.createServer(
         res.end(
           `hello world from monitoring at ${
             process.env.NODE_NAME || os.hostname()
-          }`
+          }\n` +
+            Object.values(storage)
+              .map((s) => s.summary())
+              .join("\n")
         );
       }
 
@@ -34,7 +38,15 @@ const server = http.createServer(
         });
 
         req.on("end", () => {
-          const data = JSON.parse(Buffer.concat(body).toString());
+          const data: MetricPayload[] = JSON.parse(
+            Buffer.concat(body).toString()
+          );
+          if (!Array.isArray(data)) {
+            throw new Error("Payload must be an array");
+          }
+
+          storeBatch(data);
+
           res.writeHead(200, { "Content-Type": "text/plain" });
           res.end(`Metrics received: ${data}`);
         });
@@ -53,10 +65,10 @@ const server = http.createServer(
 
     monitor.recordMetric(
       {
-        metric: "request_latency",
         value: performance.now() - start,
         unit: "ms",
       },
+      "request_latency",
       "histogram"
     );
   }
