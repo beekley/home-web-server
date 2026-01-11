@@ -8,13 +8,27 @@ interface MetricPayload {
   host: string; // e.g., "rpi-1"
   service: string; // e.g., "living-room-sensor"
   timestamp: number; // Unix epoch
+  type: PointType;
   point: Point;
 }
 
-export interface Point {
-  metric: string; // e.g., "cpu_temp", "request_latency"
-  value: number; // e.g., 45.2, 120
-  unit: string; // e.g., "°C", "ms"
+type Point = Counter | Gauge | Histogram;
+type PointType = "counter" | "gauge" | "histogram";
+
+export interface Counter {
+  name: string; // e.g. "404 response"
+}
+
+export interface Gauge {
+  metric: string; // e.g., "cpu_temp"
+  value: number; // e.g., 45.2
+  unit: string; // e.g., "°C"
+}
+
+export interface Histogram {
+  metric: string; // e.g., "request_latency"
+  value: number; // e.g., 120
+  unit: string; // e.g., "ms"
 }
 
 export class Monitor {
@@ -30,11 +44,12 @@ export class Monitor {
     setInterval(async () => await this.flushBuffer(), MON_INTERVAL);
   }
 
-  public recordMetric(point: Point): void {
+  public recordMetric(point: Point, type: PointType): void {
     this.buffer.push({
       host: this.host,
       service: this.service,
       timestamp: Date.now(),
+      type,
       point,
     });
   }
@@ -47,7 +62,7 @@ export class Monitor {
       currentBuffer.push(this.buffer.pop()!);
     }
 
-    console.log("POSTING", url, currentBuffer);
+    console.log(`Sending ${currentBuffer.length} metrics to ${url}`);
 
     try {
       const response = await fetch(url, {

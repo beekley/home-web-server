@@ -8,7 +8,7 @@ const PORT = 3000;
 // Create the server
 const server = http.createServer(
   (req: http.IncomingMessage, res: http.ServerResponse) => {
-    const start = Date.now();
+    const start = performance.now();
 
     try {
       // We need a full URL to parse query parameters
@@ -35,7 +35,6 @@ const server = http.createServer(
 
         req.on("end", () => {
           const data = JSON.parse(Buffer.concat(body).toString());
-          console.log("Received metrics:", data);
           res.writeHead(200, { "Content-Type": "text/plain" });
           res.end(`Metrics received: ${data}`);
         });
@@ -52,11 +51,14 @@ const server = http.createServer(
       res.end("Internal Server Error");
     }
 
-    monitor.recordMetric({
-      metric: "request_latency",
-      value: Date.now() - start,
-      unit: "ms",
-    });
+    monitor.recordMetric(
+      {
+        metric: "request_latency",
+        value: performance.now() - start,
+        unit: "ms",
+      },
+      "histogram"
+    );
   }
 );
 

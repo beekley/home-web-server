@@ -25,6 +25,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: MON_HOST
+              value: monitor-service.default.svc.cluster.local:80
 ---
 apiVersion: v1
 kind: Service
