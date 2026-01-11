@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node dist/index.js",
     "build": "tsc",
-    "dev": "ts-node src/index.ts"
+    "dev": "MON_HOST=localhost:3000 ts-node src/index.ts"
   },
   "devDependencies": {
     "@types/node": "^20.14.9",
