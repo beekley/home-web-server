@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitor
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: monitor
+  template:
+    metadata:
+      labels:
+        app: monitor
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: server
+          image: ghcr.io/beekley/home-web-server/monitor:latest
+          ports:
+            - containerPort: 3000
+          # Force check that latest actually is latest, not just what's cached.
+          imagePullPolicy: Always
+          # Pass the node name so the server knows what device it's running on.
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+---
+# This Service balances load across the pods, accessible at the given IP.
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitor-service
+spec:
+  selector:
+    app: monitor # Must match deployment label above.
+  ports:
+    - port: 80 # Internal Cluster Port; What is exposed to the cluster.
+      targetPort: 3000 # Container Port; What the server listens on.
+  type: ClusterIP
+---
+# This Service does not balance load so that each pod is discoverable by IP.
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitor-discovery
+spec:
+  clusterIP: None
+  selector:
+    app: monitor
+  ports:
+    - port: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: monitor-ingress
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: monitor-service
+                port:
+                  number: 80 # Must match the service port (above).
