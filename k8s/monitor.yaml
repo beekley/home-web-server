@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: monitor
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: monitor
@@ -19,16 +19,13 @@ spec:
           image: ghcr.io/beekley/home-web-server/monitor:latest
           ports:
             - containerPort: 3000
-          # Force check that latest actually is latest, not just what's cached.
           imagePullPolicy: Always
-          # Pass the node name so the server knows what device it's running on.
           env:
             - name: NODE_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
 ---
-# This Service balances load across the pods, accessible at the given IP.
 apiVersion: v1
 kind: Service
 metadata:
@@ -41,7 +38,6 @@ spec:
       targetPort: 3000 # Container Port; What the server listens on.
   type: ClusterIP
 ---
-# This Service does not balance load so that each pod is discoverable by IP.
 apiVersion: v1
 kind: Service
 metadata:
@@ -57,9 +53,20 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: monitor-ingress
+  annotations:
+    # Enable HTTPS for Monitor too
+    traefik.ingress.kubernetes.io/router.entrypoints: web, websecure
+    # Auto-generate a certificate for mon.beekley.xyz
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
+  tls:
+    - hosts:
+        - mon.beekley.xyz
+      secretName: monitor-tls-secret
   rules:
-    - http:
+    # Explicitly lock this rule to mon.beekley.xyz
+    - host: mon.beekley.xyz
+      http:
         paths:
           - path: /
             pathType: Prefix
@@ -67,4 +74,4 @@ spec:
               service:
                 name: monitor-service
                 port:
-                  number: 80 # Must match the service port (above).
+                  number: 80
