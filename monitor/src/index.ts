@@ -2,9 +2,18 @@
 import * as http from "http";
 import os from "os";
 import { MetricPayload, Monitor } from "./client";
-import { storage, storeBatch } from "./storage";
+import { Histogram, metrics, storeBatch } from "./storage";
 
 const PORT = 3000;
+
+// Register our own metrics
+metrics.set(
+  "request_latency",
+  new Histogram("request_latency", {
+    unit: "ms",
+    buckets: [1, 2, 3, 4, 5, 10, 25, 50, 100, 250, 500], // in ms
+  })
+);
 
 // Create the server
 const server = http.createServer(
@@ -23,7 +32,7 @@ const server = http.createServer(
           `hello world from monitoring at ${
             process.env.NODE_NAME || os.hostname()
           }\n` +
-            Object.values(storage)
+            Array.from(metrics.values())
               .map((s) => s.summary())
               .join("\n")
         );
