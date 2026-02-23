@@ -13,7 +13,8 @@
 
     /* Interop */
     "esModuleInterop": true, // Allows default imports from CommonJS modules
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": ["Node"]
   },
   "include": ["src/**/*"], // Only compile files in the src directory
   "exclude": ["node_modules"]
