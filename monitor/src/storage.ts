@@ -21,6 +21,7 @@ abstract class Metric {
 }
 
 export class HistogramMetric extends Metric {
+  // BUCKETS ARE NOT USED
   private readonly buckets: number[];
   private readonly bucketCounts: number[];
   private sum: number = 0;
@@ -28,7 +29,7 @@ export class HistogramMetric extends Metric {
   private unit: string;
 
   // To keep track of recent values for rendering, similar to old implementation.
-  private readonly recentValues: number[] = [];
+  private readonly recentValues: MetricPayload[] = [];
   private readonly BUFFER_SIZE = 1000;
 
   constructor(name: string, opts: MetricOptions = {}) {
@@ -55,10 +56,25 @@ export class HistogramMetric extends Metric {
     this.sum += value;
     this.count++;
 
+    // Add in list, sorted by timestamp, using binary search.
+    let i = 0;
+    let j = this.recentValues.length;
+    while (i < j) {
+      const mid = Math.floor((i + j) / 2);
+      if (payload.timestamp < this.recentValues[mid].timestamp) {
+        j = mid;
+      } else {
+        i = mid + 1;
+      }
+    }
+
+    // Insert the new value at the correct position.
+    this.recentValues.splice(i, 0, payload);
+
+    // Purge old data.
     if (this.recentValues.length >= this.BUFFER_SIZE) {
       this.recentValues.shift();
     }
-    this.recentValues.push(value);
 
     if (this.unit === "" && point.unit) {
       this.unit = point.unit;
@@ -66,10 +82,60 @@ export class HistogramMetric extends Metric {
   }
 
   summary(): string {
+    if (this.recentValues.length === 0)
+      return `<div style="text-align:center; padding: 20px; color: #666;">Not enough data to render SVG.</div>`;
+
+    // TODO: make this configurable
+    const windowMs = 1 * 1000; //; // second
+    const historyMs = 60 * 60 * 1000; // 1 hour
+    const groupedRecentValues: Record<string, number[]> = {};
+    const series: Record<string, number[]> = {};
+
+    const makeKey = (payload: MetricPayload): string =>
+      JSON.stringify(payload.fields || {});
+
+    // Prep keys
+    for (const payload of this.recentValues) {
+      const key = makeKey(payload);
+      if (!groupedRecentValues[key]) {
+        groupedRecentValues[key] = [];
+      }
+      if (!series[key]) {
+        series[key] = [];
+      }
+    }
+
+    const now = Date.now();
+    for (let i = now - historyMs; i < now; i += windowMs) {
+      // Get data points within window.
+      const payloads = this.recentValues.filter(
+        (v) => v.timestamp >= i && v.timestamp < i + windowMs,
+      );
+
+      // Fill data for each field key;
+      for (let key of Object.keys(groupedRecentValues)) {
+        // TODO: get configurable other values.
+        const value =
+          payloads.length === 0
+            ? // TODO: replace with something more meaningful when missing data.
+              0
+            : median(
+                payloads
+                  .filter((p) => makeKey(p) === key)
+                  .map((p) => {
+                    const point = p.point as Histogram;
+                    return point.value;
+                  }),
+              );
+        console.log({ key, value });
+        series[key].push(value);
+      }
+    }
+
     return renderSvg({
       xLabel: `Latency (${this.unit})`,
       yLabel: "Distribution",
-      series: [this.recentValues], // The SVG was showing raw points, not buckets
+      series,
       title: `${this.name} (${this.count} samples, avg: ${(
         this.sum / this.count
       ).toFixed(2)}${this.unit})`,
@@ -95,7 +161,7 @@ export class Gauge extends Metric {
   }
 
   summary(): string {
-    return `${this.name} (gauge): ${this.values.length} points`;
+    return `${this.name} (gauge): ${this.values[this.values.length - 1].point}`;
   }
 }
 
@@ -123,3 +189,17 @@ export function storeBatch(batch: MetricPayload[]): void {
     }
   }
 }
+
+const median = (arr: number[]): number => {
+  // Create a copy and sort the array in ascending order
+  const sortedArr = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(sortedArr.length / 2);
+
+  if (sortedArr.length % 2 === 0) {
+    // If the array length is even, return the average of the two middle elements
+    return (sortedArr[mid - 1] + sortedArr[mid]) / 2;
+  } else {
+    // If the array length is odd, return the middle element
+    return sortedArr[mid];
+  }
+};

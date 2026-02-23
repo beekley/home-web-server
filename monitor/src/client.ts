@@ -3,7 +3,7 @@ import { MetricPayload, PointType, Point } from "./types";
 
 const MON_HOST =
   process.env.MON_HOST || "monitor.home-web-server.svc.cluster.local";
-const MON_INTERVAL = 10 * 1000; // 10 s.
+const MON_INTERVAL = 1 * 1000; // 10 s.
 
 export class MonitoringClient {
   private readonly host: string = process.env.NODE_NAME || os.hostname();

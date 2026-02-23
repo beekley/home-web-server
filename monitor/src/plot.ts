@@ -1,7 +1,7 @@
 interface SvgData {
   yLabel: string;
   xLabel: string;
-  series: number[][];
+  series: Record<string, number[]>;
   title: string;
 }
 
@@ -10,23 +10,13 @@ export function renderSvg(
   width: number = 800,
   height: number = 150,
   lineColors: string[] = ["#0074d9", "#82b7e5ff"],
-  fillColor: string = "rgba(0, 116, 217, 0.1)",
+  fillColors: string[] = ["rgba(0, 116, 217, 0.1)", "rgba(130, 183, 229, 0.1)"],
 ): string {
-  if (data.series.length === 0 || data.series[0].length < 2) {
-    return `<div style="text-align:center; padding: 20px; color: #666;">Not enough data to render SVG.</div>`;
-  }
-  const maxVal = Math.max(...data.series[0]);
+  const serieses = Object.entries(data.series);
+  if (serieses.length === 0) return "";
 
-  const stepX = width / (data.series[0].length - 1);
-
-  // Generate Points for the primary line
-  const points = data.series[0]
-    .map((pt, i) => {
-      const x = i * stepX;
-      const y = height - (pt / maxVal) * height;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
+  // TODO: make this configurable
+  const maxVal = 20;
 
   // Return SVG String
   return `
@@ -36,23 +26,34 @@ export function renderSvg(
     }</div>
     <svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" preserveAspectRatio="none" style="background: #f8f9fa; border-radius: 2px; border: 1px solid #e9ecef;">
         <!-- Grid Lines (Optional) -->
-        <line x1="0" y1="${height * 0.25}" x2="${width}" y2="${
-          height * 0.25
-        }" stroke="#e9ecef" stroke-width="1" />
-        <line x1="0" y1="${height * 0.5}" x2="${width}" y2="${
-          height * 0.5
-        }" stroke="#e9ecef" stroke-width="1" />
-        <line x1="0" y1="${height * 0.75}" x2="${width}" y2="${
-          height * 0.75
-        }" stroke="#e9ecef" stroke-width="1" />
+        ${[0.25, 0.5, 0.75]
+          .map(
+            (factor) =>
+              `<line x1="0" y1="${height * factor}" x2="${width}" y2="${
+                height * factor
+              }" stroke="#e9ecef" stroke-width="1" />`,
+          )
+          .join("\n")}
 
-        <!-- The Data Fill -->
-        <polygon points="0,${height} ${points} ${width},${height}" fill="${fillColor}" />
+        ${Object.entries(data.series)
+          .map(([key, series], seriesIndex) => {
+            const stepX = width / (series.length - 1);
+            const points = series
+              .map((pt) => (isNaN(pt) ? 0 : pt)) // Skip NaN values
+              .map((pt, i) => {
+                const x = i * stepX;
+                const y = height - (pt / maxVal) * height;
+                return `${x.toFixed(1)},${y.toFixed(1)}`;
+              })
+              .join(" ");
+
+            const fillColor = fillColors[seriesIndex % fillColors.length];
+            const lineColor = lineColors[seriesIndex % lineColors.length];
+
+            return `<!-- Series: ${key} --> <polygon points="0,${height} ${points} ${width},${height}" fill="${fillColor}" /><polyline points="${points}" fill="none" stroke="${lineColor}" stroke-width="2" vector-effect="non-scaling-stroke" />`;
+          })
+          .join("\n")}
         
-        <!-- The Data Line -->
-        <polyline points="${points}" fill="none" stroke="${
-          lineColors[0]
-        }" stroke-width="2" vector-effect="non-scaling-stroke" />
     </svg>
     </summary>
     `;
